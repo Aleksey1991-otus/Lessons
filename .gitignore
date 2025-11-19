@@ -1,15 +1,14 @@
 ```
-# Rust/Cargo
+# Rust-specific ignores
 target/
 Cargo.lock
-.cargo/
 
-# Temporary files
-*.tmp
-*.lock
+# Dependencies
+vendor/
 
-# Logs
+# Logs and temp files
 *.log
+*.tmp
 
 # Environment
 .env
@@ -19,8 +18,29 @@ Cargo.lock
 # Editors
 .vscode/
 .idea/
+*.swp
+*.swo
 
-# OS
+# OS generated files
 .DS_Store
 Thumbs.db
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Python (if present)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+*.so
+.Python
 ```
