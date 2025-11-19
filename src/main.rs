@@ -3,10 +3,10 @@ use teloxide::utils::command::BotCommand;
 use serde::{Deserialize, Serialize};
 use log::{info, error};
 use std::env;
-use anyhow::Result;
 use std::collections::HashMap;
 use tokio::sync::Mutex;
 use once_cell::sync::Lazy;
+use std::error::Error;
 
 // Глобальное хранилище состояний пользователей
 static USER_STATES: Lazy<Mutex<HashMap<i64, UserState>>> = Lazy::new(|| Mutex::new(HashMap::new()));
@@ -74,10 +74,10 @@ async fn handler(cx: UpdateWithCx<AutoSend<Bot>, Message>) -> Result<(), Box<dyn
     if let Some(text) = msg.text() {
         if text.starts_with('/') {
             // Парсинг команды
-            match teloxide::utils::command::parse_command(text, &cx.bot.me().await?.username) {
-                Ok((command, _)) => {
-                    match command.parse::<Command>() {
-                        Ok(Command::Start) => {
+            match Command::parse(text, "newsbot") {
+                Ok(command) => {
+                    match command {
+                        Command::Start => {
                             // Очистка состояния пользователя
                             {
                                 let mut states = USER_STATES.lock().await;
@@ -88,7 +88,7 @@ async fn handler(cx: UpdateWithCx<AutoSend<Bot>, Message>) -> Result<(), Box<dyn
                                 .await?;
                             return Ok(());
                         }
-                        Ok(Command::Help) => {
+                        Command::Help => {
                             // Отправка справки
                             let help_text = "Этот бот позволяет получать новости по интересующей вас теме.\n\n\
                                            /start - перезапустить бота\n\
@@ -98,17 +98,11 @@ async fn handler(cx: UpdateWithCx<AutoSend<Bot>, Message>) -> Result<(), Box<dyn
                                 .await?;
                             return Ok(());
                         }
-                        Err(_) => {
-                            bot.send_message(user_id, "Неизвестная команда. Используйте /help для получения списка команд.")
-                                .await?;
-                            return Ok(());
-                        }
                     }
                 }
                 Err(_) => {
-                    // Если это не команда, обрабатываем как тему для новостей
-                    let topic = text.trim().to_string();
-                    get_and_send_news(bot, user_id, &topic, 0).await?;
+                    bot.send_message(user_id, "Неизвестная команда. Используйте /help для получения списка команд.")
+                        .await?;
                     return Ok(());
                 }
             }
@@ -165,7 +159,7 @@ async fn get_and_send_news(
     chat_id: i64,
     topic: &str,
     page: usize,
-) -> Result<()> {
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Получение API ключа из переменных окружения
     let api_key = env::var("NEWS_API_KEY")
         .expect("NEWS_API_KEY не найден в переменных окружения");
@@ -233,7 +227,7 @@ async fn send_single_news(
     article: &NewsItem,
     current_index: usize,
     total_count: usize,
-) -> Result<()> {
+) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let message = format!("*{}*\n\n{}\n\nСтраница {} из {}", 
                          article.title, 
                          article.description,
@@ -265,12 +259,4 @@ async fn send_single_news(
 #[derive(Serialize, Deserialize)]
 struct NewsApiResponse {
     articles: Vec<NewsItem>,
-}
-
-// Вспомогательная функция для загрузки изображений в Telegraph (для отправки в Telegram)
-// В целях упрощения, будем использовать прямые ссылки на изображения
-async fn upload_image_to_telegraph(image_url: &str) -> Result<String> {
-    // Для простоты возвращаем оригинальный URL изображения
-    // В реальном приложении можно реализовать загрузку на Telegraph или другой сервис
-    Ok(image_url.to_string())
 }
