@@ -1,16 +1,26 @@
-# Examples
-src/main.py
-README.md
-config.json
+```
+# Rust/Cargo
+target/
+Cargo.lock
+.cargo/
 
-# Deleted files
-old/unused.py
+# Temporary files
+*.tmp
+*.lock
 
-# Modified files
-utils.py
+# Logs
+*.log
 
-# Current .gitignore content
-(empty)
+# Environment
+.env
+.env.local
+*.env.*
 
-# Output
-(empty - no build artifacts, dependencies, or temp files to ignore)
+# Editors
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+```
