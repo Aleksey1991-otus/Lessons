@@ -1,0 +1,16 @@
+# Examples
+src/main.py
+README.md
+config.json
+
+# Deleted files
+old/unused.py
+
+# Modified files
+utils.py
+
+# Current .gitignore content
+(empty)
+
+# Output
+(empty - no build artifacts, dependencies, or temp files to ignore)
